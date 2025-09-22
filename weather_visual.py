@@ -17,6 +17,13 @@ https://www.youtube.com/shorts/P2JXqgGPddE
 Github Repo:
 https://github.com/Nirae3/SED_1115_Proj_1
 
+
+
+## Streamlight tools
+st.line_chart: https://docs.streamlit.io/develop/api-reference/charts/st.line_chart
+bokeh: https://github.com/streamlit/streamlit-bokeh
+slider: https://docs.streamlit.io/develop/api-reference/widgets/st.select_slider
+
 """
 
 
@@ -45,6 +52,7 @@ url_day_data=pd.read_csv(url_day)
 
 ## Fetch only needed data (DAILY)
 needed_daily_info=["Date/Time", "Total Precip (mm)", "Mean Temp (°C)"]
+
 filtered_daily_data=url_day_data[needed_daily_info]
 filtered_daily_data=filtered_daily_data.fillna("N/A")  ## If there are blank values,fill in with N/A
 
