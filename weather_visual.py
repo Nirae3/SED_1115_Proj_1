@@ -1,7 +1,16 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+import streamlit as st
 
+"""
+URL's I have used:
+
+https://climate.weather.gc.ca/historical_data/search_historic_data_stations_e.html?searchType=stnProv&timeframe=1&lstProvince=ON&optLimit=yearRange&StartYear=2024&EndYear=2025&Year=2025&Month=9&Day=21&selRowPerPage=100&txtCentralLatMin=0&txtCentralLatSec=0&txtCentralLongMin=0&txtCentralLongSec=0&startRow=101
+https://climate.weather.gc.ca/climate_data/daily_data_e.html?hlyRange=2000-10-19%7C2025-09-20&dlyRange=2000-10-19%7C2025-09-20&mlyRange=2003-04-01%7C2006-12-01&StationID=30578&Prov=ON&urlExtension=_e.html&searchType=stnProv&optLimit=yearRange&StartYear=2024&EndYear=2025&selRowPerPage=100&Line=106&Month=9&Day=20&lstProvince=ON&timeframe=2&Year=2025&time=LST
+
+
+"""
 
 
 ################################################# HOURLY ############################################
@@ -35,12 +44,12 @@ filtered_daily_data=filtered_daily_data.fillna("N/A")  ## If there are blank val
 
 filtered_daily_data["Date/Time"]=pd.to_datetime(filtered_daily_data["Date/Time"])
 filtered_daily_data["Date"]=filtered_daily_data["Date/Time"].dt.date
-print(filtered_daily_data)
+#print(filtered_daily_data)
 
 ############################################ MERGED ######################################
 
 merged_data=pd.merge(filtered_hourly_data, filtered_daily_data, on="Date", how="left")
-print(merged_data)
+#print(merged_data)
 
 # Convert to numeric, coerce errors to NaN
 merged_data["Temp (°C)"] = pd.to_numeric(merged_data["Temp (°C)"], errors="coerce")
@@ -53,34 +62,15 @@ merged_data["Total Precip (mm)"] = merged_data["Total Precip (mm)"].fillna(0)
 
 merged_data["Hour"] = merged_data["Date/Time (LST)"].dt.hour
 
-def is_good_weather(temp, precip):
-    return (15 <= temp <= 25) and (precip == 0)
-
-merged_data["GoodForStudy"] = merged_data.apply(
-    lambda row: is_good_weather(row["Temp (°C)"], row["Total Precip (mm)"]),
-    axis=1
-)
-
-merged_data["GoodForStudyNum"] = merged_data["GoodForStudy"].astype(int)
-
-pivot = merged_data.pivot_table(
-    index="Date", 
-    columns="Hour", 
-    values="GoodForStudyNum", 
-    aggfunc="mean"
-)
 
 
-plt.figure(figsize=(12,6))
-plt.imshow(pivot, aspect="auto", cmap="RdYlGn")
-plt.colorbar(label="Good Weather (1=True, 0=False)")
-plt.xticks(range(24), range(24))
-plt.yticks(range(len(pivot.index)), pivot.index)
-plt.xlabel("Hour of Day")
-plt.ylabel("Date")
-plt.title("Best Hours for Outdoor Study in Ottawa")
-plt.tight_layout()
-plt.show()
+
+st.write("## Wealcome to Simply Visualize Weather!")
+st.write(merged_data)
+
+#def is_good_weather(temp, precip):
+#    return (15 <= temp <= 25) and (precip == 0)
+
 
 ##print(filtered_daily_data.columns)
 ##print(url_data.info())
