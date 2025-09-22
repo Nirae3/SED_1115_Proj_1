@@ -4,11 +4,18 @@ import numpy as np
 import streamlit as st
 
 """
-URL's I have used:
+# URL's I have used:
 
+## Getting weather info:
 https://climate.weather.gc.ca/historical_data/search_historic_data_stations_e.html?searchType=stnProv&timeframe=1&lstProvince=ON&optLimit=yearRange&StartYear=2024&EndYear=2025&Year=2025&Month=9&Day=21&selRowPerPage=100&txtCentralLatMin=0&txtCentralLatSec=0&txtCentralLongMin=0&txtCentralLongSec=0&startRow=101
 https://climate.weather.gc.ca/climate_data/daily_data_e.html?hlyRange=2000-10-19%7C2025-09-20&dlyRange=2000-10-19%7C2025-09-20&mlyRange=2003-04-01%7C2006-12-01&StationID=30578&Prov=ON&urlExtension=_e.html&searchType=stnProv&optLimit=yearRange&StartYear=2024&EndYear=2025&selRowPerPage=100&Line=106&Month=9&Day=20&lstProvince=ON&timeframe=2&Year=2025&time=LST
 
+## Learning from video:
+https://www.youtube.com/watch?v=D0D4Pa22iG0
+https://www.youtube.com/shorts/P2JXqgGPddE
+
+Github Repo:
+https://github.com/Nirae3/SED_1115_Proj_1
 
 """
 
