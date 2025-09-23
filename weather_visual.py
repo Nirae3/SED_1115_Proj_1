@@ -6,6 +6,9 @@ import datetime
 import openmeteo_requests
 import requests_cache
 from retry_requests import retry
+import urllib.request
+
+
 
 
 st.set_page_config(layout="wide")
@@ -59,65 +62,62 @@ daily_7_data = pd.DataFrame(
 daily_7_data.set_index("date", inplace=True)
 
 
-################################################# HOURLY ############################################
+################# IMPROVED ############# DATA URLS ###############
 
-## Read data from specific URL (this is hourly data)
-url_hour = "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=49568&Year=2025&Month=1&Day=31&time=LST&timeframe=1&submit=Download+Data"
-url_hour_data=pd.read_csv(url_hour)
+# 2014
 
-## Fetch only needed data (HOURLY)
-needed_hourly_info=["Date/Time (LST)",  "Weather", "Temp (°C)"]
-filtered_hourly_data=url_hour_data[needed_hourly_info]
-filtered_hourly_data=filtered_hourly_data.fillna("N/A")  ## If there are blank values,fill in with N/A
-
-## Convert Date and Time into understandable by computer date and time
-filtered_hourly_data["Date/Time (LST)"] = pd.to_datetime(filtered_hourly_data["Date/Time (LST)"])
-filtered_hourly_data["Date"] = filtered_hourly_data["Date/Time (LST)"].dt.date  # from the date and time, extract date
-
-#print(filtered_hourly_data)
-
-########################################################### DAILY #########################################
-## Read data from specific URL (this is daily data)
-url_day="https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=30578&Year=2025&Month=9&Day=1&time=&timeframe=2&submit=Download+Data"
-url_day_data=pd.read_csv(url_day)
+old_month_urls = {
+    "jan_2014": "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=30578&Year=2014&Month=1&Day=21&time=LST&timeframe=1&submit=Download+Data",
+    "feb_2014": "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=30578&Year=2014&Month=2&Day=21&time=LST&timeframe=1&submit=Download+Data",
+    "mar_2014":"https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=30578&Year=2014&Month=3&Day=21&time=LST&timeframe=1&submit=Download+Data",
+    "apr_2014": "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=30578&Year=2014&Month=4&Day=30&time=LST&timeframe=1&submit=Download+Data",
+    "may_2014": "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=30578&Year=2014&Month=5&Day=30&time=LST&timeframe=1&submit=Download+Data",
+    "jun_2014": "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=30578&Year=2014&Month=6&Day=30&time=LST&timeframe=1&submit=Download+Data",
+    "jul_2014": "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=30578&Year=2014&Month=7&Day=30&time=LST&timeframe=1&submit=Download+Data",
+    "aug_2014": "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=30578&Year=2014&Month=8&Day=30&time=LST&timeframe=1&submit=Download+Data",
+    "sep_2014": "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=30578&Year=2014&Month=9&Day=30&time=LST&timeframe=1&submit=Download+Data",
+    "oct_2014": "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=30578&Year=2014&Month=10&Day=30&time=LST&timeframe=1&submit=Download+Data",
+    "nov_2014": "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=30578&Year=2014&Month=11&Day=30&time=LST&timeframe=1&submit=Download+Data",
+    "dec_2014": "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=30578&Year=2014&Month=12&Day=30&time=LST&timeframe=1&submit=Download+Data"
+}
 
 
-## Fetch only needed data (DAILY)
-needed_daily_info=["Date/Time", "Total Precip (mm)", "Mean Temp (°C)"]
 
-filtered_daily_data=url_day_data[needed_daily_info]
-filtered_daily_data=filtered_daily_data.fillna("N/A")  ## If there are blank values,fill in with N/A
+#2024
 
-
-filtered_daily_data["Date/Time"]=pd.to_datetime(filtered_daily_data["Date/Time"])
-filtered_daily_data["Date"]=filtered_daily_data["Date/Time"].dt.date
-#print(filtered_daily_data)
-
-############################################ MERGED ######################################
-
-merged_data=pd.merge(filtered_hourly_data, filtered_daily_data, on="Date", how="left")
-#print(merged_data)
-
-# Convert to numeric, coerce errors to NaN
-merged_data["Temp (°C)"] = pd.to_numeric(merged_data["Temp (°C)"], errors="coerce")
-merged_data["Total Precip (mm)"] = pd.to_numeric(merged_data["Total Precip (mm)"], errors="coerce")
-
-# Replace NaNs with 0 (or another choice) just for calculation
-merged_data["Temp (°C)"] = merged_data["Temp (°C)"].fillna(0)
-merged_data["Total Precip (mm)"] = merged_data["Total Precip (mm)"].fillna(0)
+new_month_urls={
+    "jan_2024": "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=30578&Year=2024&Month=1&Day=30&time=LST&timeframe=1&submit=Download+Data",
+    "feb_2024": "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=30578&Year=2024&Month=2&Day=1&time=LST&timeframe=1&submit=Download+Data",
+    "mar_2024": "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=30578&Year=2024&Month=3&Day=31&time=LST&timeframe=1&submit=Download+Data",
+    "apr_2024": "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=30578&Year=2024&Month=4&Day=1&time=LST&timeframe=1&submit=Download+Data",
+    "may_2024": "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=30578&Year=2024&Month=5&Day=1&time=LST&timeframe=1&submit=Download+Data",
+    "jun_2024": "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=30578&Year=2024&Month=6&Day=1&time=LST&timeframe=1&submit=Download+Data",
+    "jul_2024": "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=30578&Year=2024&Month=7&Day=1&time=LST&timeframe=1&submit=Download+Data",
+    "aug_2024": "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=30578&Year=2024&Month=8&Day=1&time=LST&timeframe=1&submit=Download+Data",
+    "sep_2024":"https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=30578&Year=2024&Month=9&Day=1&time=LST&timeframe=1&submit=Download+Data",
+    "oct_2024": "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=30578&Year=2024&Month=10&Day=1&time=LST&timeframe=1&submit=Download+Data",
+    "nov_2024": "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=30578&Year=2024&Month=11&Day=1&time=LST&timeframe=1&submit=Download+Data",
+    "dec_2024": "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=30578&Year=2024&Month=12&Day=1&time=LST&timeframe=1&submit=Download+Data"
 
 
-merged_data["Hour"] = merged_data["Date/Time (LST)"].dt.hour
+}
 
 
-chart_data=pd.DataFrame(
-    data=merged_data, 
-    columns=["Date/Time (LST)","Temp (°C)", "Total Precip (mm)", "Mean Temp (°C)"]
-    )
 
-chart_data.set_index("Date/Time (LST)", inplace=True)
-
-
+### handling errors: 
+def safe_read_csv(url):
+    try:
+        # Some servers block automated requests, so we add a User-Agent
+        req = urllib.request.Request(
+            url,
+            headers={'User-Agent': 'Mozilla/5.0'}
+        )
+        df = pd.read_csv(req)
+        return df
+    except Exception as e:
+        # Catch any exception and print a message instead of crashing
+        print(f"Failed to download {url}: {e}")
+        return None  # or pd.DataFrame() if you want an empty dataframe
 
 
 ################### WELCOME PAGE ##################################
@@ -127,33 +127,113 @@ today=datetime.date.today()
 
 st.write("## Wealcome to Simply Visualize Weather!")
 
+question_1="Is it safe to get out today or next 7 days for a student and/or babiles?"
+question_2="Compare current month weather with weather form 10 years ago"
+
 
 user_goal = st.selectbox(
     "From the Drop Down menu, please choose what I can help you with",
-    ("N/A","Is it safe to get out today or next 7 days for a student and/or babiles?", "I'd like to see historical data on weather to keep an eye on climate change")
+    ("N/A", question_1, question_2)
 )
+
+
+
+
 
 st.divider()
 
 if user_goal=="N/A":
     st.header("This is an experimental project, where I am going to try and see if any of my data insterests you. Let's go!!!")
-elif user_goal=="Is it safe to get out today or next 7 days for a student and/or babiles?":
+elif user_goal==question_1:
     st.subheader("Showing forecast data for the next 7 days ...")
     st.line_chart(daily_7_data)
     st.divider()
     st.subheader("Data in Table Format")
     st.dataframe(daily_7_data,use_container_width=True)
-elif user_goal == "I'd like to see historical data on weather to keep an eye on climate change":
+elif user_goal == question_2:
     st.subheader("Choose a research month and year")
-    st.line_chart(chart_data)
-    st.divider()
-    st.subheader("Data in Table Format")
-    st.dataframe(merged_data, use_container_width=True)
-    st.write(merged_data)
+
+    # user selects what data they wanna compare. 
+    #page gets divided into two columns
+    col1, col2 = st.columns(2)
+    with col1: 
+        user_2024_choice=st.selectbox("pick a month", list(new_month_urls.keys()))
+    with col2:
+        user_2014_choice=st.selectbox("pick a 2014 month you'd like to compare with", list(old_month_urls.keys()))
 
 
+    # read the data and store in month_20*4 data
+    month_2024_data=pd.read_csv(new_month_urls[user_2024_choice])
+    month_2014_data=pd.read_csv(old_month_urls[user_2014_choice])
 
-    
+    # collect only necessary columns
+    needed_old_data_info=["Date/Time (LST)","Temp (°C)", "Precip. Amount (mm)"]
+    needed_new_data_info=["Date/Time (LST)","Temp (°C)", "Precip. Amount (mm)"]
+
+    # folter the data
+    filtered_old_data=month_2014_data[needed_old_data_info]
+    filtered_new_data=month_2024_data[needed_new_data_info]
+
+    # get rid of null values
+    filtered_old_data=filtered_old_data.fillna("N/A")
+    filtered_new_data=filtered_new_data.fillna("N/A")
+
+    # convert "date/time (LST)" to date
+    filtered_old_data["Date/Time (LST)"] = pd.to_datetime(filtered_old_data["Date/Time (LST)"])
+    #filtered_old_data["Date"] = filtered_old_data["Date/Time (LST)"].dt.date  # from the date and time, extract date
+    filtered_new_data["Date/Time (LST)"] = pd.to_datetime(filtered_new_data["Date/Time (LST)"])
+    #filtered_new_data["Date"] = filtered_new_data["Date/Time (LST)"].dt.date  # from the date and time, extract date
+
+    # convert temperature and precipitation to numeric values
+    filtered_old_data["Temp (°C)"] = pd.to_numeric(filtered_old_data["Temp (°C)"], errors="coerce")
+    filtered_old_data["Precip. Amount (mm)"] = pd.to_numeric(filtered_old_data["Precip. Amount (mm)"], errors="coerce")
+
+    filtered_new_data["Temp (°C)"] = pd.to_numeric(filtered_new_data["Temp (°C)"], errors="coerce")
+    filtered_new_data["Precip. Amount (mm)"] = pd.to_numeric(filtered_new_data["Precip. Amount (mm)"], errors="coerce")
+
+    filtered_old_data["Date/Time (LST)"]=pd.to_datetime(filtered_old_data["Date/Time (LST)"])
+    filtered_new_data["Date/Time (LST)"]=pd.to_datetime(filtered_new_data["Date/Time (LST)"])
+
+
+    draw_old_data=pd.DataFrame(
+        data=filtered_old_data, 
+        columns=["Date/Time (LST)","Temp (°C)", "Precip. Amount (mm)"]
+        )
+
+    draw_old_data.set_index("Date/Time (LST)", inplace=True)
+
+    draw_new_data=pd.DataFrame(
+        data=filtered_new_data, 
+        columns=["Date/Time (LST)","Temp (°C)", "Precip. Amount (mm)"]
+        )
+
+    draw_new_data.set_index("Date/Time (LST)", inplace=True)
+
+    #create tow columns to compare diagram side by side.
+    new_col1, old_col2 = st.columns(2)
+    with new_col1:
+        st.subheader(f"2024 Weather data for {user_2024_choice}")
+        st.line_chart(draw_new_data)
+        with st.expander(f"View SHOWN data in table for month {user_2024_choice}"):
+            st.write("Here is the selected data table")
+            st.dataframe(filtered_new_data, use_container_width=True)
+            st.write(filtered_new_data)
+        with st.expander ("click to see all of 2024 weather month data"):
+            st.write("Here is the data table")
+            st.write("2024 Data", month_2024_data)
+        
+    with old_col2:
+        st.subheader(f"2014 Weather data for {user_2014_choice}")
+        st.line_chart(draw_old_data)
+        with st.expander(f"View SHOWN data in table format for month {user_2014_choice}"):
+            st.write("Here is the selected data table")
+            st.dataframe(filtered_old_data, use_container_width=True)
+            st.write(filtered_old_data)
+
+        with st.expander("click to see all of 2024 weather month data"):
+            st.write("Here is the data table")
+            st.write("2014 data", month_2024_data)
+
 
 st.divider()
 st.write("Don't Forget to Rate Your Experience With Us!")
@@ -163,12 +243,4 @@ st.divider()
 
 
 
-#######################################  Visualizing the Data #################################
-
-
-
-
-
-#def is_good_weather(temp, precip):
-#    return (15 <= temp <= 25) and (precip == 0)
 
