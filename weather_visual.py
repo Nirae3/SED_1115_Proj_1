@@ -13,7 +13,7 @@ import urllib.request
 
 st.set_page_config(layout="wide")
 
-####################### DATA EXPERIMENTATION ##############
+####################### DATA EXPERIMENTATION as per website ##############
 # Setup the Open-Meteo API client with cache and retry on error
 cache_session = requests_cache.CachedSession('.cache', expire_after = 3600)
 retry_session = retry(cache_session, retries = 5, backoff_factor = 0.2)
@@ -43,6 +43,7 @@ daily_temperature_2m_mean = daily.Variables(0).ValuesAsNumpy()
 daily_precipitation_probability_max = daily.Variables(1).ValuesAsNumpy()
 daily_uv_index_max = daily.Variables(2).ValuesAsNumpy()
 
+# set the range and the interval
 daily_7 = {"date": pd.date_range(
 	start = pd.to_datetime(daily.Time(), unit = "s", utc = True),
 	end = pd.to_datetime(daily.TimeEnd(), unit = "s", utc = True),
@@ -50,11 +51,16 @@ daily_7 = {"date": pd.date_range(
 	inclusive = "left"
 )}
 
+
+# Add the daily weather variables (temperature, precipitation probability, UV index)
+# to the dictionary 'daily_7', 
+
 daily_7["temperature_2m_mean"] = daily_temperature_2m_mean
 daily_7["precipitation_probability_max"] = daily_precipitation_probability_max
 daily_7["uv_index_max"] = daily_uv_index_max
 
-
+# then convert it into a pandas DataFrame with specified column order. 
+# Set the 'date' column as the DataFrame index for easier plotting and analysis.
 daily_7_data = pd.DataFrame(
     data = daily_7,
     columns=["date", "temperature_2m_mean", "precipitation_probability_max", "uv_index_max"]
@@ -65,7 +71,7 @@ daily_7_data.set_index("date", inplace=True)
 ################# IMPROVED ############# DATA URLS ###############
 
 # 2014
-
+# collect data URLS 
 old_month_urls = {
     "jan_2014": "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=30578&Year=2014&Month=1&Day=21&time=LST&timeframe=1&submit=Download+Data",
     "feb_2014": "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=30578&Year=2014&Month=2&Day=21&time=LST&timeframe=1&submit=Download+Data",
@@ -104,7 +110,7 @@ new_month_urls={
 
 
 
-### handling errors: 
+### handling errors:   Code written by ChatGPT 
 def safe_read_csv(url):
     try:
         # Some servers block automated requests, so we add a User-Agent
@@ -131,19 +137,19 @@ question_1="Is it safe to get out today or next 7 days for a student and/or babi
 question_2="Compare current month weather with weather form 10 years ago"
 
 
+# user chooses what they want to see
 user_goal = st.selectbox(
     "From the Drop Down menu, please choose what I can help you with",
     ("N/A", question_1, question_2)
 )
 
+st.divider() 
 
 
-
-
-st.divider()
-
+# If user chose nothing, show nothing
 if user_goal=="N/A":
     st.header("This is an experimental project, where I am going to try and see if any of my data insterests you. Let's go!!!")
+#if user chose forecast for next 7 days, show forecast. 
 elif user_goal==question_1:
     st.subheader("Showing forecast data for the next 7 days ...")
     st.line_chart(daily_7_data)
@@ -194,19 +200,21 @@ elif user_goal == question_2:
     filtered_old_data["Date/Time (LST)"]=pd.to_datetime(filtered_old_data["Date/Time (LST)"])
     filtered_new_data["Date/Time (LST)"]=pd.to_datetime(filtered_new_data["Date/Time (LST)"])
 
-
+    # old data decide on what columns to use
     draw_old_data=pd.DataFrame(
         data=filtered_old_data, 
         columns=["Date/Time (LST)","Temp (°C)", "Precip. Amount (mm)"]
         )
 
+    # identify each column as per date and time
     draw_old_data.set_index("Date/Time (LST)", inplace=True)
 
+    #create dataframe with filtered data
     draw_new_data=pd.DataFrame(
         data=filtered_new_data, 
         columns=["Date/Time (LST)","Temp (°C)", "Precip. Amount (mm)"]
         )
-
+    # identify each column as per date and time
     draw_new_data.set_index("Date/Time (LST)", inplace=True)
 
     #create tow columns to compare diagram side by side.
@@ -214,27 +222,28 @@ elif user_goal == question_2:
     with new_col1:
         st.subheader(f"2024 Weather data for {user_2024_choice}")
         st.line_chart(draw_new_data)
-        with st.expander(f"View SHOWN data in table for month {user_2024_choice}"):
+        with st.expander(f"View SHOWN data in table for month {user_2024_choice}"): #makes the data expandable to avoid clustering
             st.write("Here is the selected data table")
             st.dataframe(filtered_new_data, use_container_width=True)
             st.write(filtered_new_data)
-        with st.expander ("click to see all of 2024 weather month data"):
+        with st.expander ("click to see all of 2024 weather month data"): #makes the data expandable to avoid clustering
             st.write("Here is the data table")
             st.write("2024 Data", month_2024_data)
         
     with old_col2:
         st.subheader(f"2014 Weather data for {user_2014_choice}")
         st.line_chart(draw_old_data)
-        with st.expander(f"View SHOWN data in table format for month {user_2014_choice}"):
+        with st.expander(f"View SHOWN data in table format for month {user_2014_choice}"): #makes the data expandable to avoid clustering
             st.write("Here is the selected data table")
             st.dataframe(filtered_old_data, use_container_width=True)
             st.write(filtered_old_data)
 
-        with st.expander("click to see all of 2024 weather month data"):
+        with st.expander("click to see all of 2024 weather month data"): #makes the data expandable to avoid clustering
             st.write("Here is the data table")
             st.write("2014 data", month_2024_data)
 
 
+# Rates the experience the user had with the app. 
 st.divider()
 st.write("Don't Forget to Rate Your Experience With Us!")
 experience_rate = ["one","two", "three", "four", "five"]
