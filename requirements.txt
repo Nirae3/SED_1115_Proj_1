@@ -1,0 +1,7 @@
+matplotlib==3.10.6
+numpy==2.3.3
+openmeteo_requests==1.7.2
+pandas==2.3.2
+requests_cache==1.2.1
+retry_requests==2.0.0
+streamlit==1.49.1
