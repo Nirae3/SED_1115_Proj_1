@@ -133,7 +133,7 @@ today=datetime.date.today()
 
 st.write("## Wealcome to Simply Visualize Weather!")
 
-question_1="Is it safe to get out today or next 7 days for a student and/or babiles?"
+question_1="Is it safe for students and young children to go outside or study outside today or during the next 7 days?"
 question_2="Compare current month weather with weather form 10 years ago"
 
 
@@ -148,14 +148,31 @@ st.divider()
 
 # If user chose nothing, show nothing
 if user_goal=="N/A":
-    st.header("This is an experimental project, where I am going to try and see if any of my data insterests you. Let's go!!!")
+    st.header("Welcome! This is an experimental project where I explore weather data—let’s see if it sparks your interest! Let's go!!!")
 #if user chose forecast for next 7 days, show forecast. 
 elif user_goal==question_1:
+    good_weather = daily_7_data[
+        (daily_7_data["temperature_2m_mean"]>=10) &
+        (daily_7_data["temperature_2m_mean"]<=25)&
+        (daily_7_data["uv_index_max"]<=3) &
+        (daily_7_data["precipitation_probability_max"]==0)
+    ]
+
+    if not good_weather.empty:
+        st.subheader("Today is a wonderful day to go outside!")
+    else:
+        st.subheader("Maybe the young should stay at home/schools")
+
     st.subheader("Showing forecast data for the next 7 days ...")
     st.line_chart(daily_7_data)
     st.divider()
     st.subheader("Data in Table Format")
     st.dataframe(daily_7_data,use_container_width=True)
+
+    #create a list of acceptable measurements that define what it means to have a good weather
+   
+
+
 elif user_goal == question_2:
     st.subheader("Choose a research month and year")
 
