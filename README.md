@@ -1,5 +1,8 @@
 # SED_1115_Proj_1 Simply Visualize Weather 🌤️
 
+# Check out the deployed website:
+https://sed1115proj1-arinekarap.streamlit.app/
+
 Simply Visualize Weather is an interactive web app built with Streamlit that allows users to:
 
 - Check the 7-day weather forecast for Ottawa.
